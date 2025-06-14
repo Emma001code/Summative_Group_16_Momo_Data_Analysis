@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTN MoMo Transaction Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                MTN MoMo Analysis Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- File Upload Section -->
+        <div class="card upload-section mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Upload Transaction Data</h5>
+                <form id="uploadForm" class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <input type="file" class="form-control" id="xmlFile" accept=".xml" required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-upload me-2"></i>Upload & Process
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" id="truncateBtn" class="btn btn-danger w-100">
+                            <i class="fas fa-trash-alt me-2"></i>Clear All Data
+                        </button>
+                    </div>
+                    <div class="col-12">
+                        <span id="uploadStatus" class="form-text"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="card filter-section mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Filter Transactions</h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="transactionType" class="form-label">Transaction Type</label>
+                        <select id="transactionType" class="form-select">
+                            <option value="">All Transaction Types</option>
+                            <option value="MONEY_RECEIVED">Money Received</option>
+                            <option value="PAYMENT">Payment</option>
+                            <option value="TRANSFER">Transfer</option>
+                            <option value="BANK_DEPOSIT">Bank Deposit</option>
+                            <option value="AIRTIME">Airtime</option>
+                            <option value="CASH_POWER">Cash Power</option>
+                            <option value="THIRD_PARTY">Third Party</option>
+                            <option value="WITHDRAWAL">Withdrawal</option>
+                            <option value="BANK_TRANSFER">Bank Transfer</option>
+                            <option value="BUNDLE_PURCHASE">Bundle Purchase</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dateRange" class="form-label">Date Range</label>
+                        <input type="text" id="dateRange" class="form-control" placeholder="Select date range">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Amount Range (RWF)</label>
+                        <div class="input-group">
+                            <input type="number" id="minAmount" class="form-control" placeholder="Min amount">
+                            <span class="input-group-text">to</span>
+                            <input type="number" id="maxAmount" class="form-control" placeholder="Max amount">
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <label for="searchTerm" class="form-label">Search (Sender, Recipient, Phone Number)</label>
+                        <input type="text" id="searchTerm" class="form-control" placeholder="Search by sender, recipient, or phone number...">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button id="applyFilters" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Total Transactions</h6>
+                        <h2 id="totalTransactions" class="card-title">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Total Transaction Volume</h6>
+                        <h2 id="totalVolume" class="card-title">0 RWF</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row mb-4">
+            <!-- Transaction Types Distribution -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Transaction Types Distribution</h5>
+                        <div class="chart-container">
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transaction Volume by Type -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Transaction Volume by Type</h5>
+                        <div class="chart-container">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Monthly Transaction Trends -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Monthly Transaction Trends</h5>
+                        <div class="chart-container">
+                            <canvas id="monthlyTrendsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment vs Deposit Distribution -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Payments vs Deposits</h5>
+                        <div class="chart-container">
+                            <canvas id="paymentDepositChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Statistics -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Transaction Statistics</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Average Transaction Amount</h6>
+                            <h3 id="avgTransactionAmount">0 RWF</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Largest Transaction</h6>
+                            <h3 id="largestTransaction">0 RWF</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Total Fees</h6>
+                            <h3 id="totalFees">0 RWF</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Most Active Day</h6>
+                            <h3 id="mostActiveDay">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Transactions Table -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">All Transactions</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Sender</th>
+                                <th>Recipient</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                            <!-- Transactions will be loaded here -->
+                        </tbody>
+                    </table>
+                    <nav>
+                        <ul class="pagination justify-content-center" id="pagination">
+                            <!-- Pagination will be added here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div class="modal fade" id="transactionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Transaction Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Transaction details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Clear Transactions Modal -->
+    <div class="modal fade" id="clearTransactionsModal" tabindex="-1" aria-labelledby="clearTransactionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clearTransactionsModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to clear all transactions? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="confirmClearBtn" class="btn btn-primary">Yes</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="clearNotification" style="display:none; position:fixed; top:20px; right:20px; z-index:9999; min-width:200px; padding:15px; border-radius:8px; font-weight:bold;"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

@@ -1,0 +1,39 @@
+2025-06-11 22:13:21,292 - momo_analysis - ERROR - Error inserting transaction: 1406 (22001): Data too long for column 'sender' at row 1
+2025-06-11 22:13:21,295 - momo_analysis - ERROR - Error processing SMS: 1406 (22001): Data too long for column 'sender' at row 1
+2025-06-11 22:13:21,357 - momo_analysis - INFO - File processing completed. Processed: 1674, Skipped: 17
+2025-06-11 22:13:21,367 - momo_analysis - INFO - Fetching transactions
+2025-06-11 22:13:21,368 - momo_analysis - INFO - Fetching transaction statistics
+2025-06-11 22:13:21,373 - momo_analysis - INFO - Database connection established successfully
+2025-06-11 22:13:21,373 - momo_analysis - INFO - Database connection established successfully
+2025-06-11 22:13:25,283 - momo_analysis - INFO - Fetching transaction details for ID: null
+2025-06-11 22:13:25,292 - momo_analysis - INFO - Database connection established successfully
+2025-06-11 22:13:25,296 - momo_analysis - WARNING - Transaction not found
+2025-06-11 22:13:28,184 - momo_analysis - INFO - Rendering index page
+2025-06-11 22:13:28,282 - momo_analysis - INFO - Fetching transactions
+2025-06-11 22:13:28,284 - momo_analysis - INFO - Fetching transaction statistics
+2025-06-11 22:13:28,290 - momo_analysis - INFO - Database connection established successfully
+2025-06-11 22:13:28,290 - momo_analysis - INFO - Database connection established successfully
+2025-06-11 22:13:30,272 - momo_analysis - INFO - Fetching transaction details for ID: null
+2025-06-11 22:13:30,284 - momo_analysis - INFO - Database connection established successfully
+2025-06-11 22:13:30,288 - momo_analysis - WARNING - Transaction not found
+2025-06-11 22:14:02,931 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:14:06,374 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:14:07,699 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:14:47,814 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:14:48,033 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:19:52,915 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:19:53,136 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:20:33,753 - momo_analysis - INFO - Rendering index page
+2025-06-11 22:20:34,052 - momo_analysis - INFO - Fetching transactions
+2025-06-11 22:20:34,053 - momo_analysis - INFO - Fetching transaction statistics
+2025-06-11 22:21:13,902 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:21:14,148 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:21:22,763 - momo_analysis - INFO - Rendering index page
+2025-06-11 22:21:22,917 - momo_analysis - INFO - Fetching transactions
+2025-06-11 22:21:22,918 - momo_analysis - INFO - Fetching transaction statistics
+2025-06-11 22:23:31,117 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:23:46,809 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:23:47,035 - momo_analysis - INFO - Starting MTN MoMo Analysis application
+2025-06-11 22:23:59,113 - momo_analysis - INFO - Rendering index page
+2025-06-11 22:23:59,408 - momo_analysis - INFO - Fetching transactions
+2025-06-11 22:23:59,409 - momo_analysis - INFO - Fetching transaction statistics
