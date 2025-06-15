@@ -159,4 +159,14 @@ python3 app.py
 
 ---
 
-**For any issues, check the logs in your terminal and review the setup steps above.** 
+## Demo Video
+- [YouTube Demo Video](<insert_your_youtube_link_here>)
+
+---
+
+## Acknowledgments
+- **African Leadership University (ALU):** For providing this challenging and at the same time interesting task
+- **Flask:** For the lightweight and flexible web framework.
+- **MySQL:** For the robust and reliable database engine.
+- **Chart.js, Bootstrap, jQuery:** For enabling a modern, interactive, and responsive frontend.
+- All open-source contributors and the Python community for their invaluable tools and documentation.
