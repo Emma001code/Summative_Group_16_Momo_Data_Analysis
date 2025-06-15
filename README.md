@@ -1,275 +1,162 @@
 # MTN MoMo Transaction Analysis Dashboard
 
-A web-based dashboard for analyzing MTN Mobile Money transactions, built with Flask and modern web technologies.
+## Project Definition
+This project is a fullstack dashboard application for analyzing MTN Mobile Money (MoMo) SMS transaction data. It allows users to upload XML files containing transaction messages, processes and stores the data in a MySQL database, and provides a rich dashboard for filtering, visualizing, and exploring transaction statistics.
+
+## Features
+- Upload and process MTN MoMo SMS XML files
+- Store and manage transaction data in a MySQL database
+- Interactive dashboard with:
+  - Transaction filtering (by type, date, amount, search)
+  - Summary statistics (total transactions, volume, average, etc.)
+  - Visual charts (type distribution, volume, trends)
+  - Detailed transaction view
+- Responsive frontend (HTML/CSS/JS)
+- Secure backend (Flask, Python)
+- Environment-based configuration
+
+## Languages & Technologies Used
+- **Python 3** (Flask, MySQL Connector, BeautifulSoup, lxml, python-dotenv)
+- **JavaScript** (jQuery, Chart.js, Bootstrap)
+- **HTML5 & CSS3**
+- **MySQL** (database)
+- **WSL Ubuntu** (recommended for development)
+
+## Authors
+See the [AUTHORS](./AUTHORS) file for the list of contributors.
+
+## Project Structure
+```
+.
+├── app.py                  # Main Flask application
+├── scripts/
+│   ├── init_db.py          # Database initialization script
+│   └── process_data.py     # XML data processing logic
+├── templates/
+│   └── index.html          # Main dashboard HTML
+├── static/
+│   ├── css/
+│   │   └── style.css       # Dashboard styles
+│   └── js/
+│       └── main.js         # Dashboard JS logic
+├── uploads/                # Uploaded XML files (gitignored)
+├── requirements.txt        # Python dependencies
+├── .env.example            # Example environment config
+├── README.md               # This file
+└── AUTHORS                 # Project authors
+```
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
 
 ---
 
-## Quick Start: How to Run This Project
+# How to Run This Project (WSL Ubuntu/VS Code Recommended)
 
-### Prerequisites
-- Python 3.9 or higher
-- MySQL server installed and running
-- Git (optional, if cloning from a repository)
+> **Note:** It is best to use VS Code with the WSL Ubuntu terminal for a smooth experience.
 
-### 1. Clone or Download the Project
-If using Git:
-```sh
-git clone <repository-url>
-cd <project-folder>
+## 1. Clone the Repository
+```bash
+git clone <your-repo-link>
+cd <your-repo-folder>
 ```
-Or, download and extract the project ZIP, then open a terminal in the project folder.
 
-### 2. Create and Activate a Virtual Environment
-**On Windows:**
-```sh
-python -m venv venv
-venv\Scripts\activate
+## 2. Install Python Virtual Environment Tools
+```bash
+sudo apt install python3.12-venv
 ```
-**On macOS/Linux:**
-```sh
+
+## 3. Create and Activate a Virtual Environment
+```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
+You should see `(venv)` at the start of your terminal prompt.
 
-### 3. Install Python Dependencies
-```sh
+## 4. Install Python Dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set Up the MySQL Database
-1. **Log in to MySQL:**
-   ```sh
-   mysql -u root -p
-   ```
-2. **Create the database:**
-   ```sql
-   CREATE DATABASE momo_analysis;
-   EXIT;
-   ```
+## 5. Set Up Environment Variables
+- Copy the example environment file:
+  ```bash
+  cp .env.example .env
+  ```
+- Edit `.env` and fill in your MySQL credentials and secret key.
 
-### 5. Configure Environment Variables
-1. If there is a `.env.example` file, copy it to `.env`:
-   ```sh
-   cp .env.example .env
-   ```
-2. Open `.env` in a text editor and set your MySQL credentials:
-   ```
-   DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=your_mysql_password
-   DB_NAME=momo_analysis
-   ```
-
-### 6. Initialize the Database Schema
-```sh
-python scripts/init_db.py
+## 6. Install MySQL (if not already installed)
+```bash
+sudo apt update
+sudo apt install mysql-client-core-8.0
+sudo apt install mysql-server
 ```
-- This will create the necessary tables and indexes.
 
-### 7. Start the Flask Application
-```sh
-python app.py
+## 7. Start MySQL Server
+```bash
+sudo service mysql start
 ```
-- The server should start on [http://localhost:5001](http://localhost:5001)
 
-### 8. Use the Dashboard
-- Open your browser and go to [http://localhost:5001](http://localhost:5001)
-- Upload an XML transaction file using the upload form.
-- The dashboard will display transaction data and analytics.
+## 8. Set Up the Database and User
+- Access MySQL as root (no password):
+  ```bash
+  sudo mysql
+  ```
+- In the MySQL shell, run:
+  ```sql
+  CREATE DATABASE momo_analysis;
+  CREATE USER 'momo_user'@'localhost' IDENTIFIED BY 'yourpassword';
+  GRANT ALL PRIVILEGES ON momo_analysis.* TO 'momo_user'@'localhost';
+  FLUSH PRIVILEGES;
+  exit;
+  ```
+- Update your `.env` file:
+  ```
+  DB_USER=momo_user
+  DB_PASSWORD=yourpassword
+  ```
 
-### 9. (Optional) Clearing Data
-- Use the "Clear Data" button in the dashboard to remove all transactions.
-- This only affects the `transactions` table.
+## 9. Test MySQL User Access
+```bash
+mysql -u momo_user -p
+```
+- Enter your password.
+- In the MySQL shell:
+  ```sql
+  SHOW DATABASES;
+  USE momo_analysis;
+  SHOW TABLES;
+  exit;
+  ```
 
-### Troubleshooting
-- **If you see errors about missing columns:**  
-  Make sure you ran `python scripts/init_db.py` after setting up your `.env` file.
-- **If you see MySQL connection errors:**  
-  Double-check your `.env` file for correct credentials and that MySQL is running.
-- **If you see "500 Internal Server Error" in the browser:**  
-  Check the terminal for Python error messages and ensure your database schema matches the code.
+## 10. Initialize the Database Schema
+```bash
+python3 scripts/init_db.py
+```
+You should see log messages indicating successful creation of the database, tables, and indexes.
+
+## 11. Run the Flask App
+```bash
+python3 app.py
+```
+
+## 12. Open the Dashboard
+- Go to [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
+- Upload XML files and explore the dashboard!
 
 ---
 
-## Features
+## Troubleshooting
+- **If you see database connection errors:**
+  - Double-check your `.env` file for correct DB_USER, DB_PASSWORD, and DB_NAME.
+  - Make sure MySQL server is running: `sudo service mysql start`
+  - Ensure the user has privileges on the database.
+- **If you see Flask errors:**
+  - Make sure your virtual environment is activated (`(venv)` in prompt).
+  - Check that all dependencies are installed (`pip install -r requirements.txt`).
+- **If you see port errors:**
+  - Make sure no other app is using port 5000.
 
-- **Transaction Processing**
-  - Upload and process XML transaction data
-  - Automatic parsing of transaction details
-  - Support for various transaction types (payments, transfers, deposits, etc.)
+---
 
-- **Data Visualization**
-  - Transaction type distribution (Pie Chart)
-  - Transaction volume by type (Bar Chart)
-  - Monthly transaction trends (Line Chart)
-  - Payments vs Deposits distribution (Doughnut Chart)
-
-- **Advanced Filtering**
-  - Filter by transaction type
-  - Date range selection
-  - Amount range filtering
-  - Search by sender, recipient, or phone number
-
-- **Transaction Management**
-  - Detailed transaction view
-  - Pagination support
-  - Transaction statistics
-  - Data export capabilities
-
-## Technology Stack
-
-- **Backend**
-  - Python 3.9+
-  - Flask (Web Framework)
-  - MySQL (Database)
-  - BeautifulSoup4 (XML Processing)
-
-- **Frontend**
-  - HTML5/CSS3
-  - JavaScript (ES6+)
-  - Bootstrap 5
-  - Chart.js (Data Visualization)
-  - jQuery
-  - DateRangePicker
-
-## Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd mtn-momo-analysis
-   ```
-
-2. Create and activate a virtual environment:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Set up the MySQL database:
-   ```bash
-   # Create a new MySQL database
-   mysql -u root -p
-   CREATE DATABASE momo_analysis;
-   ```
-
-5. Configure environment variables:
-   ```bash
-   # Create .env file
-   cp .env.example .env
-   # Edit .env with your database credentials
-   ```
-
-6. Initialize the database:
-   ```bash
-   python scripts/init_db.py
-   ```
-
-## Running the Application
-
-1. Start the Flask server:
-   ```bash
-   python app.py
-   ```
-
-2. Access the dashboard:
-   ```
-   http://localhost:5001
-   ```
-
-## Project Structure
-
-```
-mtn-momo-analysis/
-├── app.py                 # Main Flask application
-├── requirements.txt       # Python dependencies
-├── .env                  # Environment variables
-├── scripts/
-│   ├── init_db.py        # Database initialization
-│   └── process_data.py   # Data processing utilities
-├── static/
-│   ├── css/
-│   │   └── style.css     # Custom styles
-│   └── js/
-│       └── main.js       # Frontend JavaScript
-├── templates/
-│   └── index.html        # Main dashboard template
-└── uploads/              # Temporary file upload directory
-```
-
-## Design Decisions
-
-1. **XML Processing**
-   - Used BeautifulSoup with lxml parser for robust XML handling
-   - Implemented transaction type detection based on message content
-   - Added error handling for malformed data
-
-2. **Database Schema**
-   - Normalized transaction data for efficient querying
-   - Used appropriate data types for each field
-   - Added indexes for commonly queried columns
-
-3. **Frontend Architecture**
-   - Modular JavaScript code with clear separation of concerns
-   - Responsive design using Bootstrap grid system
-   - Real-time data updates without page refresh
-
-4. **Security Considerations**
-   - Input validation for file uploads
-   - SQL injection prevention using parameterized queries
-   - Secure handling of sensitive transaction data
-
-## Challenges and Solutions
-
-1. **Date Parsing**
-   - Challenge: Inconsistent date formats in SMS messages
-   - Solution: Implemented robust date extraction with multiple format support
-
-2. **Transaction Classification**
-   - Challenge: Complex transaction type determination
-   - Solution: Pattern matching with regular expressions and keyword analysis
-
-3. **Performance Optimization**
-   - Challenge: Large dataset handling
-   - Solution: Implemented pagination and efficient database queries
-
-4. **Data Visualization**
-   - Challenge: Multiple chart synchronization
-   - Solution: Centralized chart management with proper cleanup
-
-## Future Improvements
-
-1. **Features**
-   - Export functionality for filtered data
-   - Advanced analytics and trend detection
-   - User authentication and role-based access
-   - Real-time transaction monitoring
-
-2. **Technical**
-   - Caching for improved performance
-   - API documentation with Swagger
-   - Unit and integration tests
-   - Docker containerization
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- MTN Mobile Money for the SMS data format
-- The Flask and MySQL communities
-- All contributors and users of the application 
+**For any issues, check the logs in your terminal and review the setup steps above.** 
