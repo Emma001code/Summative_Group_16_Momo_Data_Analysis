@@ -12,7 +12,7 @@ let volumeChart = null;
 let monthlyTrendsChart = null;
 let paymentDepositChart = null;
 
-// Chart colors
+// Chart colors for consistent look and feel across all charts
 const chartColors = {
     primary: '#0d6efd',
     success: '#198754',
@@ -22,12 +22,12 @@ const chartColors = {
     secondary: '#6c757d'
 };
 
-// Initialize date range picker
+// When the page is ready, set up all UI components and event listeners
 $(document).ready(function() {
-    // Show loading state immediately
+    // Show loading state immediately so users know data is being loaded
     showLoadingState();
     
-    // Initialize daterangepicker with a 30-day range
+    // Initialize the date range picker with a default 30-day range
     const endDate = moment('2025-01-16');
     const startDate = moment('2024-05-10');
     
@@ -50,7 +50,7 @@ $(document).ready(function() {
         loadInitialData();
     }, 1000);
 
-    // Set up event listeners
+    // Set up event listeners for all filter and search controls
     $('#applyFilters').click(function() {
         currentPage = 1;
         loadTransactions();
@@ -64,27 +64,25 @@ $(document).ready(function() {
         }
     });
 
-    // Add change event listener for transaction type
+    // Listen for changes in transaction type dropdown
     $('#transactionType').on('change', function() {
         currentPage = 1;
         loadTransactions();
     });
 
-    // Add change event listener for date range
+    // Listen for changes in date range picker
     $('#dateRange').on('apply.daterangepicker', function() {
         currentPage = 1;
         loadTransactions();
     });
 
-    // Add input event listeners for amount range
+    // Listen for changes in amount range inputs
     $('#minAmount, #maxAmount').on('input', function() {
-        // Remove non-numeric characters
+        // Remove non-numeric characters for user safety
         this.value = this.value.replace(/[^0-9]/g, '');
-        
         // Ensure min amount is not greater than max amount
         const minAmount = parseInt($('#minAmount').val()) || 0;
         const maxAmount = parseInt($('#maxAmount').val()) || 0;
-        
         if (minAmount > maxAmount && maxAmount !== 0) {
             if (this.id === 'minAmount') {
                 this.value = maxAmount;
@@ -94,23 +92,20 @@ $(document).ready(function() {
         }
     });
 
-    // Handle file upload
+    // Handle file upload form submission
     $('#uploadForm').on('submit', function(e) {
         e.preventDefault();
         const fileInput = $('#xmlFile')[0];
         const file = fileInput.files[0];
-        
         if (!file) {
             alert('Please select a file to upload');
             return;
         }
-
         const formData = new FormData();
         formData.append('file', file);
-
         const statusSpan = $('#uploadStatus');
         statusSpan.text('Uploading and processing...');
-
+        // Send the file to the backend for processing
         $.ajax({
             url: '/upload',
             type: 'POST',
@@ -134,20 +129,18 @@ $(document).ready(function() {
         });
     });
 
-    // Handle truncate button click with custom modal
+    // Handle the clear all data button with a confirmation modal
     $('#truncateBtn').on('click', function() {
-        // Check if there are transactions displayed
+        // Only show modal if there are transactions displayed
         const hasTransactions = $('#transactionsTable tr').length > 0 && !$('#transactionsTable tr td').hasClass('text-danger');
         if (hasTransactions) {
-            // Show the custom modal
             $('#clearTransactionsModal').modal('show');
         } else {
-            // Show red notification if no transactions
             showClearNotification('No transaction found', 'red');
         }
     });
 
-    // Handle confirmation in the modal
+    // Handle confirmation in the modal to clear all transactions
     $('#confirmClearBtn').on('click', function() {
         $.ajax({
             url: '/api/truncate',
@@ -169,7 +162,8 @@ $(document).ready(function() {
     });
 });
 
-// Show loading state for all summary cards
+// Show loading state for all summary cards and the transactions table
+// This gives users feedback that data is being loaded
 function showLoadingState() {
     $('#totalTransactions').text('Loading...');
     $('#totalVolume').text('Loading...');
@@ -184,12 +178,13 @@ function showLoadingState() {
     `);
 }
 
-// Function to load initial data with retry logic
+// Load all initial dashboard data with retry logic in case the backend is slow to start
 function loadInitialData() {
     retryCount = 0;
     loadDataWithRetry();
 }
 
+// Try to load summary data, and retry a few times if it fails (e.g., backend is still starting)
 function loadDataWithRetry() {
     // First try to load summary data
     $.ajax({

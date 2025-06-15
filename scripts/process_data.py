@@ -19,7 +19,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Configure logging
+# Set up logging so we can track what happens during data processing.
+# This helps us debug issues and understand the flow of data.
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -39,23 +40,17 @@ db_config = {
 
 def extract_amount(text):
     """
-    Extract transaction amount from text using regex.
-    
-    Args:
-        text (str): The SMS message text
-        
-    Returns:
-        float: The extracted amount, or 0.0 if no amount found
+    Try to extract the transaction amount from the SMS text using several regex patterns.
+    Returns the amount as a float, or 0.0 if not found or invalid.
     """
-    # Try to find amount with RWF suffix
+    # Try to find amount with RWF suffix (e.g., 'received 1,000 RWF')
     amount_match = re.search(r'(?:received|transferred|payment of|deposit of|withdrawn)\s*(\d+,?\d*\.?\d*)\s*RWF', text, re.IGNORECASE)
     if not amount_match:
-        # Try to find amount with RWF prefix
+        # Try to find amount with RWF prefix (e.g., 'RWF 1,000')
         amount_match = re.search(r'RWF\s*(\d+,?\d*\.?\d*)', text)
     if not amount_match:
         # Try to find any amount followed by RWF
         amount_match = re.search(r'(\d+,?\d*\.?\d*)\s*RWF', text)
-    
     if amount_match:
         amount = amount_match.group(1).replace(',', '')
         try:
@@ -67,35 +62,27 @@ def extract_amount(text):
 
 def extract_phone_number(text):
     """
-    Extract phone number from text.
-    
-    Args:
-        text (str): The SMS message text
-        
-    Returns:
-        str: The extracted phone number, or None if not found
+    Extract a Rwandan phone number (format: 2507XXXXXXXX) from the SMS text.
+    Returns the phone number as a string, or None if not found.
     """
     phone_match = re.search(r'2507\d{8}', text)
     return phone_match.group(0) if phone_match else None
 
 def extract_transaction_id(text):
-    """Extract transaction ID from text."""
+    """
+    Extract the transaction ID from the SMS text, if present.
+    Returns the transaction ID as a string, or None if not found.
+    """
     txid_match = re.search(r'(?:TxId:|Id:)\s*(\d+)', text)
     return txid_match.group(1) if txid_match else None
 
 def determine_transaction_type(text):
     """
-    Determine the type of transaction from the SMS text.
-    
-    Args:
-        text (str): The SMS message text
-        
-    Returns:
-        str: The determined transaction type
+    Analyze the SMS text and determine what type of transaction it describes.
+    Returns a string representing the transaction type (e.g., 'MONEY_RECEIVED', 'PAYMENT').
     """
     text = text.upper()
-    
-    # Define transaction type patterns
+    # Define transaction type patterns and their human-readable names
     patterns = [
         ('RECEIVED', 'MONEY_RECEIVED'),
         ('CASH POWER', 'CASH_POWER'),
@@ -108,25 +95,18 @@ def determine_transaction_type(text):
         ('BANK', 'BANK_TRANSFER'),
         ('DIRECT PAYMENT', 'THIRD_PARTY')
     ]
-    
-    # Check each pattern
+    # Check each pattern and return the first match
     for pattern, trans_type in patterns:
         if re.search(pattern, text):
             logger.debug(f"Transaction type determined as {trans_type} for text: {text[:50]}...")
             return trans_type
-    
     logger.debug(f"No specific transaction type found, defaulting to PAYMENT for text: {text[:50]}...")
     return 'PAYMENT'
 
 def extract_transaction_date(text):
     """
-    Extract transaction date from text.
-    
-    Args:
-        text (str): The SMS message text
-        
-    Returns:
-        datetime: The extracted date, or None if not found/invalid
+    Extract the transaction date and time from the SMS text.
+    Returns a datetime object if found and valid, otherwise None.
     """
     date_match = re.search(r'at\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})', text)
     if date_match:
@@ -136,12 +116,14 @@ def extract_transaction_date(text):
         except ValueError as e:
             logger.error(f"Error parsing date '{date_str}': {e}")
             return None
-    
     logger.warning(f"No date found in text: {text[:50]}...")
     return None
 
 def extract_balance(text):
-    """Extract balance from text."""
+    """
+    Extract the account balance from the SMS text, if present.
+    Returns the balance as a float, or 0.0 if not found.
+    """
     balance_match = re.search(r'balance:?\s*(\d+,?\d*\.?\d*)\s*RWF', text, re.IGNORECASE)
     if balance_match:
         balance = balance_match.group(1).replace(',', '')
@@ -149,7 +131,10 @@ def extract_balance(text):
     return 0.0
 
 def extract_fee(text):
-    """Extract fee from text."""
+    """
+    Extract the transaction fee from the SMS text, if present.
+    Returns the fee as a float, or 0.0 if not found.
+    """
     fee_match = re.search(r'Fee\s*(?:was|:)\s*(\d+,?\d*\.?\d*)\s*RWF', text, re.IGNORECASE)
     if fee_match:
         fee = fee_match.group(1).replace(',', '')
@@ -157,29 +142,31 @@ def extract_fee(text):
     return 0.0
 
 def extract_names(text):
-    """Extract sender and recipient names from text."""
+    """
+    Try to extract sender and recipient names from the SMS text using a list of common names.
+    Returns a tuple (sender, recipient), or (None, None) if not found.
+    """
     # Common names in the dataset
     names = ["Jane Smith", "Samuel Carter", "Alex Doe", "Robert Brown", "Linda Green"]
     sender = None
     recipient = None
-    
     for name in names:
         if f"from {name}" in text:
             sender = name
         elif f"to {name}" in text:
             recipient = name
-    
     return sender, recipient
 
 def process_sms(sms_text):
-    """Process a single SMS and extract relevant information."""
+    """
+    Process a single SMS message and extract all relevant transaction information.
+    Returns a dictionary with transaction details, or None if the SMS is not a valid transaction.
+    """
     amount = extract_amount(sms_text)
     transaction_type = determine_transaction_type(sms_text)
-    
     # Skip processing if no valid amount found for relevant transaction types
     if amount == 0 and transaction_type not in ['AIRTIME', 'BUNDLE_PURCHASE']:
         return None
-    
     transaction = {
         'transaction_id': extract_transaction_id(sms_text),
         'transaction_type': transaction_type,
@@ -190,11 +177,9 @@ def process_sms(sms_text):
         'balance': extract_balance(sms_text),
         'message': sms_text
     }
-    
     sender, recipient = extract_names(sms_text)
     transaction['sender'] = sender
     transaction['recipient'] = recipient
-    
     return transaction
 
 def insert_transaction(cursor, transaction):

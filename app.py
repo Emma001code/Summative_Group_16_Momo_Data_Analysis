@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 from scripts.process_data import process_xml_file
 from flask_cors import CORS
 
-# Configure logging
+# Set up logging so we can track what happens in the app.
+# This helps with debugging and understanding user actions.
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -51,11 +52,17 @@ db_config = {
 }
 
 def allowed_file(filename):
-    """Check if the uploaded file has an allowed extension."""
+    """
+    Returns True if the uploaded file has an allowed extension (e.g., .xml).
+    This helps us ensure users only upload files we know how to process.
+    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
-    """Create and return a database connection."""
+    """
+    Create and return a database connection using the configuration from the .env file.
+    If the connection fails, an error is logged and the exception is raised.
+    """
     try:
         connection = mysql.connector.connect(**db_config)
         logger.info("Database connection established successfully")
@@ -66,35 +73,34 @@ def get_db_connection():
 
 @app.route('/')
 def index():
-    """Render the main dashboard page."""
+    """
+    Render the main dashboard page for the MTN MoMo Transaction Analysis app.
+    """
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """
     Handle XML file upload and processing.
-    
-    Expects a file in the request with key 'file'.
-    Returns JSON response indicating success or failure.
+    - Expects a file in the request with key 'file'.
+    - Saves the file, processes it, and deletes it after processing.
+    - Returns a JSON response indicating success or failure.
     """
     try:
         if 'file' not in request.files:
             logger.warning("No file part in request")
             return jsonify({'error': 'No file part'}), 400
-        
         file = request.files['file']
         if file.filename == '':
             logger.warning("No selected file")
             return jsonify({'error': 'No selected file'}), 400
-        
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             logger.info(f"File saved successfully: {filepath}")
-            
             try:
-                # Process the uploaded XML file
+                # Process the uploaded XML file and count processed transactions
                 processed_count = process_xml_file(filepath)
                 logger.info(f"Successfully processed {processed_count} transactions")
                 return jsonify({
@@ -105,26 +111,27 @@ def upload_file():
                 logger.error(f"Error processing file: {str(e)}")
                 return jsonify({'error': str(e)}), 500
             finally:
-                # Clean up the uploaded file
+                # Always remove the uploaded file after processing to save space
                 if os.path.exists(filepath):
                     os.remove(filepath)
                     logger.info(f"Cleaned up uploaded file: {filepath}")
-        
         logger.warning("Invalid file type")
         return jsonify({'error': 'Invalid file type'}), 400
-    
     except Exception as e:
         logger.error(f"Unexpected error in upload_file: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/transactions')
 def get_transactions():
-    """Get transactions with optional filtering."""
+    """
+    Retrieve transactions from the database, with optional filtering by type, date, amount, and search term.
+    Supports pagination for large datasets.
+    Returns a JSON response with the filtered transactions and total count.
+    """
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
-        
-        # Get filter parameters
+        # Get filter parameters from the request (type, date, search, amount, pagination)
         transaction_type = request.args.get('type')
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
@@ -133,15 +140,12 @@ def get_transactions():
         max_amount = request.args.get('max_amount')
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 10))
-        
-        # Log received parameters
+        # Log received parameters for debugging
         print(f"Received filter parameters: type={transaction_type}, start_date={start_date}, end_date={end_date}, "
               f"search={search}, min_amount={min_amount}, max_amount={max_amount}, page={page}")
-        
-        # Calculate offset
+        # Calculate offset for pagination
         offset = (page - 1) * per_page
-        
-        # Base query
+        # Base query for counting and selecting transactions
         count_query = "SELECT COUNT(*) as total FROM transactions WHERE 1=1"
         query = """
             SELECT 
@@ -160,43 +164,35 @@ def get_transactions():
             WHERE 1=1
         """
         params = []
-        
-        # Add filters
+        # Add filters to the query if provided
         if transaction_type and transaction_type.strip():
             query += " AND transaction_type = %s"
             count_query += " AND transaction_type = %s"
             params.append(transaction_type)
-        
         if start_date and start_date.strip():
             query += " AND DATE(transaction_date) >= %s"
             count_query += " AND DATE(transaction_date) >= %s"
             params.append(start_date)
-        
         if end_date and end_date.strip():
             query += " AND DATE(transaction_date) <= %s"
             count_query += " AND DATE(transaction_date) <= %s"
             params.append(end_date)
-        
         if min_amount and str(min_amount).strip():
             query += " AND amount >= %s"
             count_query += " AND amount >= %s"
             params.append(float(min_amount))
-        
         if max_amount and str(max_amount).strip():
             query += " AND amount <= %s"
             count_query += " AND amount <= %s"
             params.append(float(max_amount))
-        
         if search and search.strip():
             search_terms = f"%{search.strip()}%"
             query += " AND (message LIKE %s OR sender LIKE %s OR recipient LIKE %s OR phone_number LIKE %s)"
             count_query += " AND (message LIKE %s OR sender LIKE %s OR recipient LIKE %s OR phone_number LIKE %s)"
             params.extend([search_terms] * 4)
-        
-        # Log constructed query
+        # Log constructed query for debugging
         print(f"Executing query: {query}")
         print(f"With parameters: {params}")
-        
         # Get total count
         cursor.execute(count_query, params)
         total = cursor.fetchone()['total']

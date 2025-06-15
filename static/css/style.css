@@ -1,12 +1,14 @@
-/**
+/*
  * MTN MoMo Transaction Analysis Dashboard - Styles
- * 
+ *
  * This stylesheet defines the visual appearance of the dashboard including:
  * - Layout and spacing
  * - Color scheme
  * - Typography
- * - Component styles
- * - Responsive design
+ * - Component styles (cards, tables, filters, charts)
+ * - Responsive design for mobile and desktop
+ *
+ * Each section below is commented to help you quickly find and understand the styles for different parts of the app.
  */
 
 /* CSS Variables for consistent theming */
@@ -62,7 +64,10 @@
     --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Base styles */
+/*
+ * Base styles for body and global elements
+ * Sets up the default font, background, and overall look.
+ */
 body {
     font-family: var(--font-family-base);
     font-size: var(--font-size-base);
@@ -75,7 +80,10 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-/* Header styles */
+/*
+ * Header styles
+ * Styles for the dashboard header and title.
+ */
 .dashboard-header {
     background-color: white;
     padding: var(--spacing-lg);
@@ -89,7 +97,10 @@ body {
     font-size: var(--font-size-lg);
 }
 
-/* Filter section styles */
+/*
+ * Filter section styles
+ * Styles for the filter controls above the dashboard.
+ */
 .filters-section {
     background-color: white;
     padding: var(--spacing-lg);
@@ -108,7 +119,10 @@ body {
     display: block;
 }
 
-/* Chart container styles */
+/*
+ * Chart container styles
+ * Styles for the cards and containers that hold charts.
+ */
 .chart-container {
     background-color: white;
     padding: var(--spacing-lg);
@@ -124,7 +138,10 @@ body {
     color: var(--dark-color);
 }
 
-/* Statistics card styles */
+/*
+ * Statistics card styles
+ * Styles for the summary cards showing key stats.
+ */
 .stats-card {
     background-color: white;
     padding: var(--spacing-lg);
@@ -151,7 +168,10 @@ body {
     margin-top: var(--spacing-xs);
 }
 
-/* Table styles */
+/*
+ * Table styles
+ * Styles for the transactions table and its headers/rows.
+ */
 .transaction-table {
     background-color: white;
     border-radius: var(--border-radius-lg);
@@ -167,7 +187,10 @@ body {
     background-color: rgba(0, 123, 255, 0.05);
 }
 
-/* Form control styles */
+/*
+ * Form control and button styles
+ * Styles for input fields, dropdowns, and buttons.
+ */
 .form-control {
     border: 1px solid #ced4da;
     border-radius: var(--border-radius);
@@ -182,7 +205,6 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-/* Button styles */
 .btn {
     padding: var(--spacing-sm) var(--spacing-lg);
     border-radius: var(--border-radius);
