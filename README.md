@@ -16,7 +16,7 @@ This project is a fullstack dashboard application for analyzing MTN Mobile Money
 - Environment-based configuration
 
 ## Languages & Technologies Used
-- **Python 3** (Flask, MySQL Connector, BeautifulSoup, lxml, python-dotenv)
+- **Python 3** (Flask, MySQL Connector, lxml, python-dotenv)
 - **JavaScript** (jQuery, Chart.js, Bootstrap)
 - **HTML5 & CSS3**
 - **MySQL** (database)
