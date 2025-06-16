@@ -160,7 +160,7 @@ python3 app.py
 ---
 
 ## Demo Video
-- [YouTube Demo Video](<insert_your_youtube_link_here>)
+- [YouTube Demo Video](<https://youtu.be/8Cb-hsvutCg>)
 
 ---
 
